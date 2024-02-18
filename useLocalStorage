@@ -1,0 +1,54 @@
+USe local storage hook  :
+
+
+import { useState, useEffect } from 'react';
+
+// ----------------------------------------------------------------------
+
+export default function useLocalStorage(key, defaultValue) {
+  const [value, setValue] = useState(() => {
+    const storedValue = typeof window !== 'undefined' ? localStorage.getItem(key) : null;
+    return storedValue === null ? defaultValue : JSON.parse(storedValue);
+  });
+
+  useEffect(() => {
+    const listener = (e) => {
+      if (typeof window !== 'undefined' && e.storageArea === localStorage && e.key === key) {
+        setValue(e.newValue ? JSON.parse(e.newValue) : e.newValue);
+      }
+    };
+    window.addEventListener('storage', listener);
+
+    return () => {
+      window.removeEventListener('storage', listener);
+    };
+  }, [key, defaultValue]);
+
+  const setValueInLocalStorage = (newValue) => {
+    setValue((currentValue) => {
+      const result = typeof newValue === 'function' ? newValue(currentValue) : newValue;
+      if (typeof window !== 'undefined') localStorage.setItem(key, JSON.stringify(result));
+      return result;
+    });
+  };
+
+  return [value, setValueInLocalStorage];
+}
+
+// Reference code
+
+// import React, (useState} from 'react'
+// function useLocalStorage(key, initValue) {
+//   const
+//     [storedValue, setStorevalue] =
+//       useState(() => {
+//         const item = localStorage getItem (key)
+//         return item ? JSON.parse(item)
+//           : initValue
+//       });
+//   const setValue = (value) =>
+//     setStorevalue(value)
+//   localStorage.setItem(key, JSON.stringify(value))
+//   return { storedValue, setValue }
+// }
+// export default useLocalStorage
